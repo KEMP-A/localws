@@ -1,0 +1,16 @@
+# Config local de Claude Code / editores
+.claude/
+.vscode/
+
+# Python temporal
+__pycache__/
+*.pyc
+
+# Windows / OneDrive
+Thumbs.db
+desktop.ini
+*.tmp
+
+# Perfiles de Chrome de pruebas
+cp*/
+chromeprofile/

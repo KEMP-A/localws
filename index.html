@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>Leidy amor mio 💖</title>
+
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Playfair+Display:ital@0;1&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>    
+
+  <!-- ===== Canvas de la galaxia ===== -->
+  <canvas id="webgl"></canvas>
+  <div id="particleLabels" class="particle-labels" aria-hidden="true"></div>
+
+  <!-- ===== Pantalla de inicio ===== -->
+  <section id="landing">
+    <div class="card">
+      <h1 class="love-title">MI AMOR LEIDY</h1>
+
+      <div class="bears" aria-hidden="true">
+        <img src="love-i-love-you.gif" alt="" class="bears-gif" />
+      </div>
+
+      <p class="hint">DALE AL BOTON AMORR</p>
+      <button id="startBtn" class="start-btn">AMORRRR <img src="seal-cute.gif" alt="" class="btn-gif" /></button>
+    </div>
+  </section>
+
+  <!-- ===== Pista para girar ===== -->
+  <div id="tip" class="tip hidden">✦ Arrastra para girar · Toca una foto ✦</div>
+
+  <!-- ===== Modal del mensaje ===== -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-photo"><img id="modalImg" alt="recuerdo" /></div>
+      <h2 id="modalTitle" class="modal-title">Tu Sonrisa</h2>
+      <p id="modalText" class="modal-text"></p>
+      <button id="closeBtn" class="close-btn">CERRAR ✕</button>
+    </div>
+  </div>
+
+  <div id="heartVideoBtnWrap" class="heart-video-wrap hidden" aria-hidden="true">
+    <button id="heartVideoBtn" class="heart-video-btn" type="button" aria-label="Ver video">
+      <span class="heart-video-icon">▶</span>
+    </button>
+  </div>
+
+  <div id="videoModal" class="video-modal hidden" role="dialog" aria-modal="true" aria-label="Reproductor de video">
+    <div class="video-modal-card">
+      <button id="closeVideoBtn" class="video-close-btn" type="button" aria-label="Cerrar video">✕</button>
+      <div class="video-shell">
+        <video id="heartVideoPlayer" class="video-player" controls playsinline preload="metadata"></video>
+      </div>
+      <p id="videoMessage" class="video-message">Sube un video en la carpeta vid para verlo aquí.</p>
+    </div>
+  </div>
+
+  <!-- Música de fondo (opcional): pon tu canción en music/cancion.mp3 -->
+  <audio id="bgm" loop preload="auto">
+    <source src="music/cancion.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- Three.js local (funciona sin internet y con doble clic) -->
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+  <!-- Fotos incrustadas (generado por embed_fotos.py) para que se vean con doble clic -->
+  <script src="fotos.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

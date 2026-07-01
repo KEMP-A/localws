@@ -1,0 +1,6 @@
+Pon aqui tu cancion y ponle de nombre exactamente:
+
+  cancion.mp3
+
+Empezara a sonar cuando pulses INICIAR.
+(Si no pones ninguna, la pagina funciona igual, sin musica.)

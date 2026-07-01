@@ -1,0 +1,390 @@
+/* ===================================================================
+   PÁGINA ROMÁNTICA · Galaxia de Amor
+   =================================================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --pink: #ff4fa3;
+  --pink-soft: #ff8ec9;
+  --purple: #7b3ff0;
+  --glow: 0 0 18px rgba(255, 79, 163, .65), 0 0 40px rgba(123, 63, 240, .45);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #05010d;
+  font-family: 'Poppins', system-ui, sans-serif;
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Canvas ===== */
+#webgl {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background:
+    radial-gradient(120% 90% at 50% 35%, #1a0833 0%, #0a0418 45%, #03010a 100%);
+}
+
+.particle-labels {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.particle-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: 'Dancing Script', cursive;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff7fd;
+  text-shadow: 0 0 10px rgba(255, 79, 163, .95), 0 0 20px rgba(255, 79, 163, .55);
+  white-space: nowrap;
+  opacity: .92;
+}
+
+/* ===================================================================
+   PANTALLA DE INICIO
+   =================================================================== */
+#landing {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(120% 100% at 50% 30%, #2a0d4f 0%, #140726 50%, #05010d 100%);
+  transition: opacity .9s ease, visibility .9s ease;
+}
+#landing.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  width: min(540px, 92vw);
+  padding: 46px 34px 40px;
+  text-align: center;
+  border-radius: 26px;
+  background: rgba(20, 8, 38, .55);
+  border: 1px solid rgba(255, 142, 201, .35);
+  box-shadow:
+    0 0 60px rgba(123, 63, 240, .35),
+    inset 0 0 40px rgba(255, 79, 163, .08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: floatCard 6s ease-in-out infinite;
+}
+@keyframes floatCard {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-10px); }
+}
+
+.love-title {
+  font-weight: 800;
+  font-size: clamp(2.6rem, 9vw, 4.4rem);
+  letter-spacing: 3px;
+  line-height: 1.05;
+  background: linear-gradient(180deg, #ffffff 0%, #ffd0ea 45%, #ff7bc2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 20px rgba(255, 105, 190, .6));
+  margin-bottom: 18px;
+}
+
+.bears {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 20px;
+  animation: floatBears 4s ease-in-out infinite;
+}
+.bears-gif {
+  width: clamp(150px, 42vw, 210px);
+  height: auto;
+  filter: drop-shadow(0 6px 22px rgba(255, 79, 163, .55));
+}
+@keyframes floatBears {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+
+/* gif dentro del botón INICIAR */
+.btn-gif {
+  height: 1.7em;
+  width: auto;
+  vertical-align: middle;
+  margin-left: 6px;
+  transform: translateY(-1px);
+}
+
+.hint {
+  font-size: .82rem;
+  letter-spacing: 4px;
+  font-weight: 300;
+  color: #e9c7ff;
+  opacity: .85;
+  margin-bottom: 22px;
+}
+
+.start-btn {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  color: #fff;
+  padding: 14px 42px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+  box-shadow: var(--glow);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.start-btn:hover { transform: scale(1.07); box-shadow: 0 0 28px rgba(255, 79, 163, .9), 0 0 60px rgba(123, 63, 240, .6); }
+.start-btn:active { transform: scale(.98); }
+
+/* ===================================================================
+   PISTA
+   =================================================================== */
+.tip {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  font-size: .78rem;
+  letter-spacing: 2px;
+  color: #ffc8e8;
+  text-shadow: 0 0 12px rgba(255, 79, 163, .8);
+  opacity: .9;
+  pointer-events: none;
+  animation: tipFade 3.5s ease-in-out infinite;
+}
+@keyframes tipFade { 0%,100% { opacity: .35; } 50% { opacity: .95; } }
+
+/* ===================================================================
+   MODAL
+   =================================================================== */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(120% 120% at 50% 50%, rgba(40, 10, 60, .82), rgba(3, 1, 12, .92));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity .45s ease, visibility .45s ease;
+}
+.modal-card {
+  width: min(440px, 92vw);
+  padding: 30px 28px 26px;
+  text-align: center;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(60, 18, 80, .55), rgba(20, 8, 38, .65));
+  border: 1px solid rgba(255, 142, 201, .4);
+  box-shadow: 0 0 70px rgba(255, 79, 163, .35), inset 0 0 30px rgba(255, 79, 163, .08);
+  transform: translateY(0) scale(1);
+  transition: transform .45s cubic-bezier(.2,.9,.3,1.3);
+}
+.modal.hidden .modal-card { transform: translateY(20px) scale(.9); }
+
+.modal-photo {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  box-shadow: 0 0 30px rgba(255, 79, 163, .6);
+}
+.modal-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  background: #20102e;
+}
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.9rem;
+  margin-bottom: 14px;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255, 105, 190, .7);
+}
+.modal-text {
+  font-weight: 300;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #f3dcff;
+  margin-bottom: 24px;
+}
+.close-btn {
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: .9rem;
+  color: #fff;
+  padding: 11px 34px;
+  border: 1px solid rgba(255, 142, 201, .6);
+  border-radius: 50px;
+  cursor: pointer;
+  background: rgba(255, 79, 163, .14);
+  transition: background .25s ease, transform .2s ease;
+}
+.close-btn:hover { background: rgba(255, 79, 163, .3); transform: scale(1.05); }
+
+/* ===== BOTÓN DE VIDEO EN EL CORAZÓN ===== */
+.heart-video-wrap {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 12;
+  pointer-events: none;
+}
+.heart-video-btn {
+  pointer-events: auto;
+  width: 64px;
+  height: 64px;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #fff;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, rgba(255, 79, 163, .98), rgba(123, 63, 240, .95));
+  box-shadow: 0 0 22px rgba(255, 79, 163, .55), inset 0 0 14px rgba(255,255,255,.22);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.heart-video-btn:hover {
+  transform: scale(1.07);
+  box-shadow: 0 0 30px rgba(255, 79, 163, .72), inset 0 0 16px rgba(255,255,255,.3);
+}
+.heart-video-btn:active { transform: scale(.95); }
+.heart-video-icon { margin-left: 3px; font-size: 1.3rem; }
+
+.video-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(2, 1, 8, .92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity .3s ease, visibility .3s ease;
+}
+.video-modal-card {
+  position: relative;
+  width: min(960px, 96vw);
+  max-height: 86vh;
+  padding: 20px 20px 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(32, 10, 54, .92), rgba(10, 4, 20, .96));
+  border: 1px solid rgba(255, 142, 201, .35);
+  box-shadow: 0 0 50px rgba(255, 79, 163, .28);
+}
+.video-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #fff;
+  background: rgba(255,255,255,.12);
+}
+.video-shell {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-player {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  object-fit: contain;
+}
+.video-message {
+  margin-top: 12px;
+  text-align: center;
+  color: #f8d9f0;
+  font-size: .95rem;
+}
+
+/* ===== utilidades ===== */
+.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+@media (max-width: 640px) {
+  #landing {
+    padding: 16px;
+  }
+  .card {
+    padding: 28px 18px 24px;
+    width: min(100%, 94vw);
+  }
+  .love-title {
+    font-size: clamp(1.9rem, 8vw, 2.5rem);
+    letter-spacing: 1.5px;
+  }
+  .hint {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+  }
+  .start-btn {
+    width: 100%;
+    padding: 13px 20px;
+    font-size: 0.95rem;
+  }
+  .particle-label {
+    font-size: 0.95rem !important;
+    text-shadow: 0 0 8px rgba(255, 79, 163, .9);
+  }
+  .tip {
+    font-size: 0.68rem;
+    bottom: 16px;
+    padding: 0 12px;
+  }
+  .heart-video-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 1rem;
+  }
+  .video-modal-card {
+    padding: 14px 12px 12px;
+    width: min(100%, 96vw);
+  }
+  .video-message {
+    font-size: 0.85rem;
+  }
+}
