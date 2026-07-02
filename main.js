@@ -279,7 +279,7 @@ const meetMonthsText = document.getElementById('meetMonthsText');
 const proposalDateText = document.getElementById('proposalDateText');
 const relationshipMonthsText = document.getElementById('relationshipMonthsText');
 const meetDate = new Date(2026, 0, 18);
-const proposalDate = new Date(2026, 6, 5);
+const proposalDate = new Date(2026, 5, 5);
 let videoReady = false;
 let bgmWasPlayingBeforeVideo = false;
 let gameAnimationId = null;
@@ -1084,4 +1084,4 @@ window.addEventListener('resize', () => {
   renderer.setSize(sizes.w, sizes.h);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
-//hy//
+//hyK//
