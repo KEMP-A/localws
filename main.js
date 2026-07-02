@@ -177,7 +177,6 @@ function buildStars() {
 
   for (let i = 0; i < N; i++) {
     const i3 = i * 3;
-    // distribución en esfera hueca
     const r = 9 + Math.random() * 9;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
@@ -252,12 +251,79 @@ function updateParticleLabels() {
 
 const heartVideoWrap = document.getElementById('heartVideoBtnWrap');
 const heartVideoBtn = document.getElementById('heartVideoBtn');
+const gameBtnWrap = document.getElementById('gameBtnWrap');
+const gameBtn = document.getElementById('gameBtn');
+const musicBtnWrap = document.getElementById('musicBtnWrap');
+const musicBtn = document.getElementById('musicBtn');
+const comingSoonBtnWrap = document.getElementById('comingSoonBtnWrap');
 const videoModal = document.getElementById('videoModal');
+const gameModal = document.getElementById('gameModal');
 const videoPlayer = document.getElementById('heartVideoPlayer');
 const closeVideoBtn = document.getElementById('closeVideoBtn');
+const closeGameBtn = document.getElementById('closeGameBtn');
 const videoMessage = document.getElementById('videoMessage');
+const gameCanvas = document.getElementById('gameCanvas');
+const gameOverlay = document.getElementById('gameOverlay');
+const gameOverlayText = document.getElementById('gameOverlayText');
+const gameOverlayBtn = document.getElementById('gameOverlayBtn');
+const comingSoonBtn = document.getElementById('comingSoonBtn');
+const comingSoonModal = document.getElementById('comingSoonModal');
+const closeComingSoonBtn = document.getElementById('closeComingSoonBtn');
+const addPhotoBtn = document.getElementById('addPhotoBtn');
+const photoUploadInput = document.getElementById('photoUploadInput');
+const photoStatus = document.getElementById('photoStatus');
 const videoCandidates = ['vid/1.mp4', 'vid/1.webm', 'vid/1.ogg', 'vid/1.m4v', 'vid/1.mov', 'vid/video.mp4', 'vid/video.webm', 'vid/video.ogg', 'vid/video.m4v', 'vid/video.mov'];
+const liveClock = document.getElementById('liveClock');
+const meetDateText = document.getElementById('meetDateText');
+const meetMonthsText = document.getElementById('meetMonthsText');
+const proposalDateText = document.getElementById('proposalDateText');
+const relationshipMonthsText = document.getElementById('relationshipMonthsText');
+const meetDate = new Date(2026, 0, 18);
+const proposalDate = new Date(2026, 6, 5);
 let videoReady = false;
+let bgmWasPlayingBeforeVideo = false;
+let gameAnimationId = null;
+let nextBubblePhotoIndex = 0;
+let gameCtx = null;
+let gameState = null;
+let gameTouchSide = null;
+let gameLastFrame = null;
+let gameHasStarted = false;
+let gameWinner = null;
+
+function formatSpanishDate(date) {
+  const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  return `${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`;
+}
+
+function getMonthDiff(startDate, endDate = new Date()) {
+  const start = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  return Math.max(0, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
+}
+
+function updateLoveTimeline() {
+  if (meetDateText) meetDateText.textContent = formatSpanishDate(meetDate);
+  if (proposalDateText) proposalDateText.textContent = formatSpanishDate(proposalDate);
+  if (meetMonthsText) meetMonthsText.textContent = `Llevamos ${getMonthDiff(meetDate)} meses`;
+  if (relationshipMonthsText) relationshipMonthsText.textContent = `Llevamos ${getMonthDiff(proposalDate)} meses`;
+}
+
+function updateClock() {
+  if (!liveClock) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  liveClock.textContent = time;
+}
+
+updateLoveTimeline();
+updateClock();
+setInterval(updateLoveTimeline, 60000);
+setInterval(updateClock, 1000);
 
 function updateHeartVideoButton() {
   if (!heartVideoWrap) return;
@@ -313,18 +379,40 @@ function tryLoadVideo(index = 0, onReady) {
   };
 }
 
+function setScenePaused(paused) {
+  if (galaxyPoints) galaxyPoints.visible = !paused;
+  if (stars) stars.visible = !paused;
+  heartGroup.visible = !paused;
+  if (beam) beam.visible = !paused;
+  bubbleSprites.forEach((sprite) => { sprite.visible = !paused; });
+  controls.enabled = !paused;
+}
+
+function updateMusicButtonState() {
+  if (!musicBtn) return;
+  const isPaused = !bgm || bgm.paused || bgm.muted;
+  musicBtn.classList.toggle('paused', isPaused);
+  musicBtn.classList.toggle('playing', !isPaused);
+  const label = musicBtn.querySelector('.music-btn-text');
+  if (label) label.textContent = isPaused ? 'REANUDAR' : 'PAUSAR';
+  const icon = musicBtn.querySelector('.music-btn-icon');
+  if (icon) icon.textContent = isPaused ? '⏸' : '🎵';
+  if (musicBtnWrap) {
+    musicBtnWrap.setAttribute('aria-hidden', isPaused ? 'true' : 'false');
+  }
+}
+
 function openVideoModal() {
+  bgmWasPlayingBeforeVideo = !bgm.paused && !bgm.muted;
   tryLoadVideo(0, (ok) => {
     videoModal.classList.remove('hidden');
     if (ok) {
-      bgm.pause();
-      controls.enabled = false;
+      if (bgmWasPlayingBeforeVideo) {
+        bgm.pause();
+        updateMusicButtonState();
+      }
+      setScenePaused(true);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-      if (galaxyPoints) galaxyPoints.visible = false;
-      if (stars) stars.visible = false;
-      heartGroup.visible = false;
-      beam.visible = false;
-      bubbleSprites.forEach((sprite) => { sprite.visible = false; });
       videoPlayer.currentTime = 0;
       videoPlayer.playbackRate = 1;
       videoPlayer.play().catch(() => {});
@@ -336,23 +424,356 @@ function closeVideoModal() {
   videoModal.classList.add('hidden');
   videoPlayer.pause();
   videoPlayer.currentTime = 0;
-  if (!bgm.paused) {
+  if (bgmWasPlayingBeforeVideo) {
     bgm.play().catch(() => {});
+    updateMusicButtonState();
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  if (galaxyPoints) galaxyPoints.visible = true;
-  if (stars) stars.visible = true;
-  heartGroup.visible = true;
-  beam.visible = true;
-  bubbleSprites.forEach((sprite) => { sprite.visible = true; });
-  controls.enabled = true;
+  setScenePaused(false);
+}
+
+function openComingSoonModal() {
+  bgmWasPlayingBeforeVideo = !bgm.paused && !bgm.muted;
+  comingSoonModal.classList.remove('hidden');
+  if (bgmWasPlayingBeforeVideo) {
+    bgm.pause();
+    updateMusicButtonState();
+  }
+  setScenePaused(true);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+}
+
+function closeComingSoonModal() {
+  comingSoonModal.classList.add('hidden');
+  if (bgmWasPlayingBeforeVideo) {
+    bgm.play().catch(() => {});
+    updateMusicButtonState();
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  setScenePaused(false);
+}
+
+function createInitialGameState() {
+  return {
+    leftY: 0.5,
+    rightY: 0.5,
+    ballX: 0.5,
+    ballY: 0.5,
+    ballVx: 0.0052 + Math.random() * 0.0004,
+    ballVy: 0.0032 + Math.random() * 0.0004,
+    scoreLeft: 0,
+    scoreRight: 0,
+    lastWinner: Math.random() > 0.5 ? 'left' : 'right',
+  };
+}
+
+function resetGameState() {
+  gameState = createInitialGameState();
+  gameWinner = null;
+  gameHasStarted = false;
+}
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function updateGameState(dt) {
+  if (!gameState || !gameHasStarted) return;
+  const step = dt * 60;
+  const moveSpeed = 0.012 * step;
+
+  if (keys.w) gameState.leftY -= moveSpeed;
+  if (keys.s) gameState.leftY += moveSpeed;
+  if (keys.arrowUp) gameState.rightY -= moveSpeed;
+  if (keys.arrowDown) gameState.rightY += moveSpeed;
+
+  gameState.leftY = clamp(gameState.leftY, 0.08, 0.92);
+  gameState.rightY = clamp(gameState.rightY, 0.08, 0.92);
+
+  gameState.ballX += gameState.ballVx * step * 0.8;
+  gameState.ballY += gameState.ballVy * step * 0.8;
+
+  if (gameState.ballY <= 0.03 || gameState.ballY >= 0.97) {
+    gameState.ballVy *= -1;
+    gameState.ballY = clamp(gameState.ballY, 0.03, 0.97);
+  }
+
+  const leftX = 0.06;
+  const rightX = 0.94;
+  const leftPaddleTop = gameState.leftY - 0.12;
+  const rightPaddleTop = gameState.rightY - 0.12;
+
+  if (
+    gameState.ballX <= leftX + 0.03 &&
+    gameState.ballY > leftPaddleTop &&
+    gameState.ballY < leftPaddleTop + 0.24
+  ) {
+    gameState.ballX = leftX + 0.03;
+    gameState.ballVx = Math.abs(gameState.ballVx) * 1.001;
+    gameState.ballVy += (gameState.ballY - (leftPaddleTop + 0.12)) * 0.008;
+  }
+
+  if (
+    gameState.ballX >= rightX - 0.03 &&
+    gameState.ballY > rightPaddleTop &&
+    gameState.ballY < rightPaddleTop + 0.24
+  ) {
+    gameState.ballX = rightX - 0.03;
+    gameState.ballVx = -Math.abs(gameState.ballVx) * 1.001;
+    gameState.ballVy += (gameState.ballY - (rightPaddleTop + 0.12)) * 0.008;
+  }
+
+  if (gameState.ballX < -0.04) {
+    gameState.scoreRight += 1;
+    resetBall('right');
+  }
+  if (gameState.ballX > 1.04) {
+    gameState.scoreLeft += 1;
+    resetBall('left');
+  }
+
+  if (gameState.scoreLeft >= 5 || gameState.scoreRight >= 5) {
+    const winnerName = gameState.scoreLeft >= 5 ? 'Leidy' : 'Kevin';
+    gameState = createInitialGameState();
+    gameWinner = winnerName;
+    gameHasStarted = false;
+    updateGameOverlay();
+  }
+}
+
+function resetBall(winner) {
+  if (!gameState) return;
+  gameState.ballX = 0.5;
+  gameState.ballY = 0.5;
+  gameState.ballVx = (winner === 'left' ? 0.0052 : -0.0052) + Math.random() * 0.0004;
+  gameState.ballVy = (Math.random() - 0.5) * 0.0032;
+}
+
+function drawGameScene(ts) {
+  if (!gameCtx || !gameCanvas) return;
+  const width = gameCanvas.clientWidth;
+  const height = gameCanvas.clientHeight;
+  if (!width || !height) return;
+
+  const now = performance.now();
+  if (!gameState) resetGameState();
+  if (gameLastFrame) {
+    updateGameState((now - gameLastFrame) / 1000);
+  }
+  gameLastFrame = now;
+
+  gameCtx.clearRect(0, 0, width, height);
+
+  const sky = gameCtx.createLinearGradient(0, 0, 0, height);
+  sky.addColorStop(0, '#fff7ff');
+  sky.addColorStop(0.45, '#ffe3f0');
+  sky.addColorStop(1, '#ffc2de');
+  gameCtx.fillStyle = sky;
+  gameCtx.fillRect(0, 0, width, height);
+
+  gameCtx.strokeStyle = 'rgba(255,255,255,0.75)';
+  gameCtx.lineWidth = 2.5;
+  gameCtx.setLineDash([10, 8]);
+  gameCtx.beginPath();
+  gameCtx.moveTo(width / 2, 18);
+  gameCtx.lineTo(width / 2, height - 18);
+  gameCtx.stroke();
+  gameCtx.setLineDash([]);
+
+  drawPaddle(gameCtx, 24, (gameState.leftY * height) - 50, width, height, '#ff4fa3');
+  drawPaddle(gameCtx, width - 34, (gameState.rightY * height) - 50, width, height, '#4da3ff');
+
+  const ballX = gameState.ballX * width;
+  const ballY = gameState.ballY * height;
+  gameCtx.beginPath();
+  gameCtx.arc(ballX, ballY, Math.max(9, width * 0.014), 0, Math.PI * 2);
+  gameCtx.fillStyle = '#726d6d';
+  gameCtx.shadowColor = 'rgba(255, 79, 163, 0.9)';
+  gameCtx.shadowBlur = 16;
+  gameCtx.fill();
+  gameCtx.shadowBlur = 0;
+
+  gameCtx.fillStyle = '#2b153b';
+  gameCtx.font = '700 24px Poppins, sans-serif';
+  gameCtx.textAlign = 'center';
+  gameCtx.fillText(`${gameState.scoreLeft}`, width * 0.32, 42);
+  gameCtx.fillText(`${gameState.scoreRight}`, width * 0.68, 42);
+
+  gameCtx.font = '500 14px Poppins, sans-serif';
+  gameCtx.fillText('Leidy', width * 0.32, height - 18);
+  gameCtx.fillText('Kevin', width * 0.68, height - 18);
+
+  gameAnimationId = window.requestAnimationFrame(drawGameScene);
+}
+
+function updateGameOverlay() {
+  if (!gameOverlay || !gameOverlayText || !gameOverlayBtn) return;
+  const showOverlay = !gameHasStarted;
+  gameOverlay.classList.toggle('hidden', !showOverlay);
+  if (gameWinner) {
+    gameOverlayText.textContent = `¡${gameWinner} ganó!`;
+    gameOverlayBtn.textContent = 'JUGAR DE NUEVO';
+  } else {
+    gameOverlayText.textContent = 'Presiona jugar para empezar';
+    gameOverlayBtn.textContent = 'JUGAR';
+  }
+}
+
+function drawPaddle(ctx, x, y, width, height, color) {
+  ctx.fillStyle = color;
+  ctx.shadowColor = `${color}88`;
+  ctx.shadowBlur = 18;
+  ctx.fillRect(x, y, 12, Math.max(70, height * 0.16));
+  ctx.shadowBlur = 0;
+}
+
+function startGameAnimation() {
+  if (!gameCanvas) return;
+  gameCtx = gameCanvas.getContext('2d');
+  if (!gameCtx) return;
+  const resizeCanvas = () => {
+    const rect = gameCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    gameCanvas.width = rect.width * dpr;
+    gameCanvas.height = rect.height * dpr;
+    gameCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  resizeCanvas();
+  resetGameState();
+  updateGameOverlay();
+  window.addEventListener('resize', resizeCanvas);
+  gameLastFrame = performance.now();
+  gameAnimationId = window.requestAnimationFrame(drawGameScene);
+}
+
+function stopGameAnimation() {
+  if (gameAnimationId) {
+    window.cancelAnimationFrame(gameAnimationId);
+    gameAnimationId = null;
+  }
+  gameLastFrame = null;
+}
+
+function openGameModal() {
+  bgmWasPlayingBeforeVideo = !bgm.paused && !bgm.muted;
+  gameModal.classList.remove('hidden');
+  if (bgmWasPlayingBeforeVideo) {
+    bgm.pause();
+    updateMusicButtonState();
+  }
+  setScenePaused(true);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  startGameAnimation();
+}
+
+function startPongGame() {
+  gameState = createInitialGameState();
+  gameHasStarted = true;
+  gameWinner = null;
+  updateGameOverlay();
+}
+
+function closeGameModal() {
+  gameModal.classList.add('hidden');
+  stopGameAnimation();
+  if (bgmWasPlayingBeforeVideo) {
+    bgm.play().catch(() => {});
+    updateMusicButtonState();
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  setScenePaused(false);
+}
+
+const keys = { w: false, s: false, arrowUp: false, arrowDown: false };
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'w' || e.key === 'W') keys.w = true;
+  if (e.key === 's' || e.key === 'S') keys.s = true;
+  if (e.key === 'ArrowUp') keys.arrowUp = true;
+  if (e.key === 'ArrowDown') keys.arrowDown = true;
+});
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'w' || e.key === 'W') keys.w = false;
+  if (e.key === 's' || e.key === 'S') keys.s = false;
+  if (e.key === 'ArrowUp') keys.arrowUp = false;
+  if (e.key === 'ArrowDown') keys.arrowDown = false;
+});
+
+if (gameCanvas) {
+  gameCanvas.addEventListener('pointerdown', (e) => {
+    if (!gameHasStarted) {
+      startPongGame();
+    }
+    const rect = gameCanvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    gameTouchSide = x < 0.5 ? 'left' : 'right';
+  });
+  gameCanvas.addEventListener('pointermove', (e) => {
+    if (!gameState || !gameTouchSide) return;
+    const rect = gameCanvas.getBoundingClientRect();
+    const y = (e.clientY - rect.top) / rect.height;
+    const clamped = clamp(y, 0.08, 0.92);
+    if (gameTouchSide === 'left') gameState.leftY = clamped;
+    else gameState.rightY = clamped;
+  });
+  gameCanvas.addEventListener('pointerup', () => { gameTouchSide = null; });
+  gameCanvas.addEventListener('pointerleave', () => { gameTouchSide = null; });
+}
+
+if (gameOverlayBtn) {
+  gameOverlayBtn.addEventListener('click', () => {
+    startPongGame();
+  });
 }
 
 heartVideoBtn.addEventListener('click', openVideoModal);
+gameBtn.addEventListener('click', openGameModal);
+if (musicBtn) {
+  musicBtn.addEventListener('click', () => {
+    if (!bgm) return;
+    if (bgm.paused) {
+      bgm.play().then(() => updateMusicButtonState()).catch(() => updateMusicButtonState());
+    } else {
+      bgm.pause();
+      updateMusicButtonState();
+    }
+  });
+}
 closeVideoBtn.addEventListener('click', closeVideoModal);
+closeGameBtn.addEventListener('click', closeGameModal);
+closeComingSoonBtn.addEventListener('click', closeComingSoonModal);
 videoModal.addEventListener('click', (e) => {
   if (e.target === videoModal) closeVideoModal();
 });
+gameModal.addEventListener('click', (e) => {
+  if (e.target === gameModal) closeGameModal();
+});
+comingSoonModal.addEventListener('click', (e) => {
+  if (e.target === comingSoonModal) closeComingSoonModal();
+});
+
+if (comingSoonBtn) {
+  comingSoonBtn.addEventListener('click', openComingSoonModal);
+}
+if (addPhotoBtn) {
+  addPhotoBtn.addEventListener('click', () => photoUploadInput.click());
+}
+if (photoUploadInput) {
+  photoUploadInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        applyPhotoToNextBubble(event.target.result);
+        if (photoStatus) {
+          photoStatus.textContent = `Foto añadida: ${file.name}`;
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  });
+}
 
 tryLoadVideo();
 
@@ -363,24 +784,24 @@ function heartXY(t) {
   return [x, y];
 }
 function buildHeart() {
-  const N = 3200;
+  const N = 4300;
   const positions = new Float32Array(N * 3);
-  const s = 0.09;
+  const s = 0.096;
   for (let i = 0; i < N; i++) {
     const i3 = i * 3;
     const t = Math.random() * Math.PI * 2;
     let [x, y] = heartXY(t);
-    // un poco de relleno hacia el centro + grosor
-    const k = 0.55 + Math.random() * 0.45;
+    // relleno más uniforme para que se vea más compacto y con más puntos
+    const k = 0.68 + Math.random() * 0.32;
     x *= k; y *= k;
-    positions[i3]     = x * s + (Math.random() - 0.5) * 0.05;
-    positions[i3 + 1] = y * s - 0.15 + (Math.random() - 0.5) * 0.05;
-    positions[i3 + 2] = (Math.random() - 0.5) * 0.18;
+    positions[i3]     = x * s + (Math.random() - 0.5) * 0.035;
+    positions[i3 + 1] = y * s - 0.15 + (Math.random() - 0.5) * 0.035;
+    positions[i3 + 2] = (Math.random() - 0.5) * 0.14;
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const mat = new THREE.PointsMaterial({
-    size: 0.12, map: glowTex, color: '#ff2e88', sizeAttenuation: true,
+    size: 0.11, map: glowTex, color: '#ff2e88', sizeAttenuation: true,
     depthWrite: false, blending: THREE.AdditiveBlending, transparent: true,
   });
   heartGroup.add(new THREE.Points(geo, mat));
@@ -413,17 +834,16 @@ scene.add(beam);
 const bubbleSprites = [];
 const RING_R = 7.2;
 
-function buildBubbleCanvas(b) {
+function buildBubbleCanvas(b, imageOverride = null) {
   const W = 320, H = 400, R = 150, CX = W / 2, CY = R + 8;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-  let tex; // la textura de ESTA burbuja (se asigna abajo)
+  let tex;
 
   const draw = (img) => {
     ctx.clearRect(0, 0, W, H);
 
-    // halo
     ctx.save();
     ctx.shadowColor = b.ring;
     ctx.shadowBlur = 35;
@@ -431,16 +851,13 @@ function buildBubbleCanvas(b) {
     ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fill();
     ctx.restore();
 
-    // foto recortada en círculo
     ctx.save();
     ctx.beginPath(); ctx.arc(CX, CY, R - 12, 0, Math.PI * 2); ctx.clip();
     if (img) {
-      // cover
       const s = Math.max((2 * (R - 12)) / img.width, (2 * (R - 12)) / img.height);
       const dw = img.width * s, dh = img.height * s;
       ctx.drawImage(img, CX - dw / 2, CY - dh / 2, dw, dh);
     } else {
-      // placeholder bonito si no hay foto
       const g = ctx.createLinearGradient(0, 0, W, H);
       g.addColorStop(0, b.ring); g.addColorStop(1, '#3a1060');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -449,7 +866,6 @@ function buildBubbleCanvas(b) {
     }
     ctx.restore();
 
-    // anillo
     ctx.beginPath(); ctx.arc(CX, CY, R - 10, 0, Math.PI * 2);
     ctx.lineWidth = 9; ctx.strokeStyle = b.ring;
     ctx.shadowColor = b.ring; ctx.shadowBlur = 20; ctx.stroke();
@@ -457,7 +873,6 @@ function buildBubbleCanvas(b) {
     ctx.beginPath(); ctx.arc(CX, CY, R - 16, 0, Math.PI * 2);
     ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.stroke();
 
-    // etiqueta
     ctx.font = '600 30px Poppins, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.shadowColor = b.ring; ctx.shadowBlur = 16;
@@ -465,18 +880,21 @@ function buildBubbleCanvas(b) {
     ctx.fillText(b.label, CX, H - 42);
     ctx.shadowBlur = 0;
 
-    if (tex) tex.needsUpdate = true;   // re-subir ESTA textura a la GPU
+    if (tex) tex.needsUpdate = true;
   };
 
-  draw(null); // primero placeholder
+  draw(null);
   tex = new THREE.CanvasTexture(canvas);
   tex.anisotropy = 4;
 
-  // cargar la foto real (si existe)
-  const image = new Image();
-  image.onload = () => draw(image);
-  image.onerror = () => {/* se queda el placeholder */};
-  image.src = fotoSrc(b.img);
+  if (imageOverride) {
+    draw(imageOverride);
+  } else {
+    const image = new Image();
+    image.onload = () => draw(image);
+    image.onerror = () => {};
+    image.src = fotoSrc(b.img);
+  }
 
   return tex;
 }
@@ -488,13 +906,28 @@ function buildBubbles() {
     const sprite = new THREE.Sprite(mat);
 
     const a = (i / BUBBLES.length) * Math.PI * 2;
-    const yWobble = Math.sin(i * 1.7) * 0.3;          // anillo casi plano (ecuatorial)
+    const yWobble = Math.sin(i * 1.7) * 0.3;
     sprite.position.set(Math.cos(a) * RING_R, yWobble, Math.sin(a) * RING_R);
-    sprite.scale.set(1.55, 1.94, 1);          // proporción 320x400
+    sprite.scale.set(1.55, 1.94, 1);
     sprite.userData = { ...b, baseAngle: a, yBase: yWobble };
     scene.add(sprite);
     bubbleSprites.push(sprite);
   });
+}
+
+function applyPhotoToNextBubble(dataUrl) {
+  if (!bubbleSprites.length) return;
+  const sprite = bubbleSprites[nextBubblePhotoIndex % bubbleSprites.length];
+  nextBubblePhotoIndex = (nextBubblePhotoIndex + 1) % bubbleSprites.length;
+  const image = new Image();
+  image.onload = () => {
+    const tex = buildBubbleCanvas(sprite.userData, image);
+    sprite.material.map = tex;
+    sprite.material.needsUpdate = true;
+    sprite.material.transparent = true;
+    sprite.material.depthWrite = false;
+  };
+  image.src = dataUrl;
 }
 // esperar a que cargue la fuente Poppins para que las etiquetas se vean bien
 if (document.fonts && document.fonts.ready) {
@@ -555,9 +988,24 @@ document.getElementById('startBtn').addEventListener('click', () => {
   landing.classList.add('hide');
   intro = true;
   introT = 0;
-  heartVideoWrap.classList.remove('hidden');
+  if (heartVideoWrap) {
+    heartVideoWrap.classList.remove('hidden');
+    heartVideoWrap.setAttribute('aria-hidden', 'false');
+  }
+  if (gameBtnWrap) {
+    gameBtnWrap.classList.remove('hidden');
+    gameBtnWrap.setAttribute('aria-hidden', 'false');
+  }
+  if (musicBtnWrap) {
+    musicBtnWrap.classList.remove('hidden');
+    musicBtnWrap.setAttribute('aria-hidden', 'false');
+  }
+  if (comingSoonBtnWrap) {
+    comingSoonBtnWrap.classList.remove('hidden');
+    comingSoonBtnWrap.setAttribute('aria-hidden', 'false');
+  }
   bgm.volume = 0.6;
-  bgm.play().catch(() => {/* sin música si no hay archivo */});
+  bgm.play().then(() => updateMusicButtonState()).catch(() => updateMusicButtonState());
   setTimeout(() => tip.classList.remove('hidden'), 3200);
   setTimeout(() => tip.classList.add('hidden'), 9000);
 });

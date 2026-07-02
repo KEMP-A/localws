@@ -17,14 +17,36 @@
   <!-- ===== Canvas de la galaxia ===== -->
   <canvas id="webgl"></canvas>
   <div id="particleLabels" class="particle-labels" aria-hidden="true"></div>
+  <div id="liveClock" class="live-clock" aria-live="polite"></div>
 
   <!-- ===== Pantalla de inicio ===== -->
   <section id="landing">
+    <div class="hearts-layer" aria-hidden="true">
+      <span class="heart-float heart-float-1">💖</span>
+      <span class="heart-float heart-float-2">💗</span>
+      <span class="heart-float heart-float-3">💕</span>
+      <span class="heart-float heart-float-4">💞</span>
+      <span class="heart-float heart-float-5">💖</span>
+      <span class="heart-float heart-float-6">💗</span>
+    </div>
     <div class="card">
       <h1 class="love-title">MI AMOR LEIDY</h1>
 
       <div class="bears" aria-hidden="true">
         <img src="love-i-love-you.gif" alt="" class="bears-gif" />
+      </div>
+
+      <div class="love-summary" aria-label="Resumen de nuestra historia">
+        <div class="summary-card">
+          <p class="summary-label">Nos conocimos</p>
+          <p id="meetDateText" class="summary-value">18 de enero de 2026</p>
+          <p id="meetMonthsText" class="summary-meta">Llevamos 6 meses</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Noviazgo</p>
+          <p id="proposalDateText" class="summary-value">5 de julio de 2026</p>
+          <p id="relationshipMonthsText" class="summary-meta">Llevamos 0 meses</p>
+        </div>
       </div>
 
       <p class="hint">DALE AL BOTON AMORR</p>
@@ -51,6 +73,27 @@
     </button>
   </div>
 
+  <div id="gameBtnWrap" class="game-btn-wrap hidden" aria-hidden="true">
+    <button id="gameBtn" class="game-btn" type="button" aria-label="Jugar pin pon">
+      <span class="game-btn-icon">🏓</span>
+      <span class="game-btn-text">PIN PON</span>
+    </button>
+  </div>
+
+  <div id="musicBtnWrap" class="music-btn-wrap hidden" aria-hidden="true">
+    <button id="musicBtn" class="music-btn" type="button" aria-label="Pausar música">
+      <span class="music-btn-icon">⏹️</span>
+      <span class="music-btn-text">PAUSAR</span>
+    </button>
+  </div>
+
+  <div id="comingSoonBtnWrap" class="coming-soon-btn-wrap hidden" aria-hidden="true">
+    <button id="comingSoonBtn" class="coming-soon-btn" type="button" aria-label="Próximamente">
+      <span class="coming-soon-btn-icon">✨</span>
+      <span class="coming-soon-btn-text">PRÓXIMAMENTE</span>
+    </button>
+  </div>
+
   <div id="videoModal" class="video-modal hidden" role="dialog" aria-modal="true" aria-label="Reproductor de video">
     <div class="video-modal-card">
       <button id="closeVideoBtn" class="video-close-btn" type="button" aria-label="Cerrar video">✕</button>
@@ -58,6 +101,36 @@
         <video id="heartVideoPlayer" class="video-player" controls playsinline preload="metadata"></video>
       </div>
       <p id="videoMessage" class="video-message">Sube un video en la carpeta vid para verlo aquí.</p>
+    </div>
+  </div>
+
+  <div id="gameModal" class="game-modal hidden" role="dialog" aria-modal="true" aria-label="Juego de Kevin y Leidy">
+    <div class="game-modal-card">
+      <button id="closeGameBtn" class="video-close-btn" type="button" aria-label="Cerrar juego">✕</button>
+      <div class="game-shell">
+        <canvas id="gameCanvas" class="game-canvas"></canvas>
+        <div id="gameOverlay" class="game-start-overlay" role="dialog" aria-live="polite">
+          <h3 class="game-win-title">PIN PON</h3>
+          <p id="gameOverlayText" class="game-win-subtitle">Presiona jugar para empezar</p>
+          <button id="gameOverlayBtn" class="game-start-btn" type="button">JUGAR</button>
+        </div>
+      </div>
+      <p class="game-message">Kevin y Leidy caminan juntos y sonríen en este cuadrito de amor.</p>
+    </div>
+  </div>
+
+  <div id="comingSoonModal" class="video-modal hidden" role="dialog" aria-modal="true" aria-label="Próximamente">
+    <div class="video-modal-card">
+      <button id="closeComingSoonBtn" class="video-close-btn" type="button" aria-label="Cerrar próximamente">✕</button>
+      <div class="video-shell" style="aspect-ratio: 16 / 10; padding: 24px;">
+        <div style="width: 100%; text-align: center; color: #fff;">
+          <h2 class="game-win-title" style="margin-bottom: 10px;">PRÓXIMAMENTE</h2>
+          <p class="game-win-subtitle" style="margin-bottom: 16px;">Agrega fotos y se irán cambiando en las burbujas, una por una.</p>
+          <input id="photoUploadInput" type="file" accept="image/*" multiple hidden />
+          <button id="addPhotoBtn" class="game-start-btn" type="button">AGREGAR FOTOS</button>
+          <p id="photoStatus" class="video-message">Puedes subir varias fotos para que aparezcan en secuencia.</p>
+        </div>
+      </div>
     </div>
   </div>
 
