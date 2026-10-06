@@ -12,7 +12,7 @@
 
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>    
+<body>
 
   <!-- ===== Canvas de la galaxia ===== -->
   <canvas id="webgl"></canvas>
@@ -94,6 +94,13 @@
     </button>
   </div>
 
+  <div id="fourMonthsGalaxyBtnWrap" class="four-months-galaxy-btn-wrap hidden" aria-hidden="true">
+    <button id="fourMonthsGalaxyBtn" class="four-months-galaxy-btn" type="button" aria-label="Abrir recuerdo de nuestros cuatro meses">
+      <span class="four-months-galaxy-btn-icon" aria-hidden="true">💖</span>
+      <span class="four-months-galaxy-btn-text">4 MESES</span>
+    </button>
+  </div>
+
   <div id="videoModal" class="video-modal hidden" role="dialog" aria-modal="true" aria-label="Reproductor de video">
     <div class="video-modal-card">
       <button id="closeVideoBtn" class="video-close-btn" type="button" aria-label="Cerrar video">✕</button>
@@ -131,6 +138,58 @@
           <p id="photoStatus" class="video-message">Puedes subir varias fotos para que aparezcan en secuencia.</p>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="fourMonthsScreen" class="four-months-screen hidden" role="dialog" aria-modal="true" aria-labelledby="fourMonthsTitle">
+    <div class="four-months-card">
+      <button id="closeFourMonthsBtn" class="close-four-months-btn" type="button" aria-label="Cerrar recuerdo">✕</button>
+
+      <section id="fourMonthsStep1" class="four-months-step active">
+        <h2 id="fourMonthsTitle" class="four-months-title">💖 FELICES CUATRO MESES 💖</h2>
+        <p class="four-months-message">
+          Hoy cumplimos nuestro cuarto mes juntos. Me encanta así, aunque no hubiéramos podido estar todo el primer día juntos; con unos minutos me basta.
+          Espero que este sea solo el primero de muchísimos más. Te amo con todo mi corazón. ❤️
+        </p>
+        <p class="four-months-subtitle">Dale 3 veces al corazón para tu sorpresa</p>
+        <div class="click-heart-wrapper">
+          <button id="clickHeartBtn" class="click-heart-btn" type="button" aria-label="Corazón: 0 de 3 clicks">
+            <span class="click-heart-icon" aria-hidden="true">💖</span>
+            <span id="clickCounter" class="click-counter" aria-live="polite">0/3</span>
+          </button>
+        </div>
+        <p class="four-months-hint">Toca <span id="clicksLeft">3</span> veces más</p>
+      </section>
+
+      <section id="fourMonthsStep2" class="four-months-step" aria-label="Fotos de nuestros recuerdos">
+        <h2 class="four-months-title">Nuestros recuerdos 💕</h2>
+        <div class="carousel-container">
+          <button id="carouselPrev" class="carousel-btn carousel-prev hidden" type="button" aria-label="Foto anterior">‹</button>
+          <div class="carousel-track" id="carouselTrack" aria-live="polite"></div>
+          <button id="carouselNext" class="carousel-btn carousel-next" type="button" aria-label="Siguiente foto">›</button>
+        </div>
+        <p class="carousel-hint">Desliza o usa las flechas para ver todas las fotos</p>
+        <button id="continueToVideoBtn" class="continue-btn" type="button">Continuar al video 💕</button>
+      </section>
+
+      <section id="fourMonthsStep3" class="four-months-step">
+        <h2 class="password-title">🔒 Acceso al video especial</h2>
+        <p class="password-question">¿Quién es el amor de tu vida?</p>
+        <form id="passwordForm" class="password-input-wrapper">
+          <input type="text" id="passwordInput" class="password-input" placeholder="Escribe el nombre..." autocomplete="off" spellcheck="false" aria-describedby="passwordError" />
+          <button id="passwordSubmitBtn" class="password-submit-btn" type="submit">VER VIDEO</button>
+        </form>
+        <p id="passwordError" class="password-error hidden" role="alert">Nombre incorrecto, intenta de nuevo 💔</p>
+      </section>
+
+      <section id="fourMonthsStep4" class="four-months-step">
+        <div class="video-shell four-months-video-shell">
+          <video id="fourMonthsVideoPlayer" class="video-player" controls playsinline preload="auto" aria-label="Video especial de nuestros cuatro meses"></video>
+          <p id="fourMonthsVideoError" class="four-months-video-error hidden" role="status">No se pudo cargar el video. Revisa que exista vid/2.mp4.</p>
+        </div>
+        <p class="four-months-video-hint">El video incluye audio. Ajusta el volumen desde los controles. 🔊</p>
+        <p class="four-months-video-message">¡Felices 4 meses, mi amor! 💖</p>
+      </section>
     </div>
   </div>
 

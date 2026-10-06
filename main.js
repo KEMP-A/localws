@@ -1004,6 +1004,7 @@ document.getElementById('startBtn').addEventListener('click', () => {
     comingSoonBtnWrap.classList.remove('hidden');
     comingSoonBtnWrap.setAttribute('aria-hidden', 'false');
   }
+  showFourMonthsGalaxyButton();
   bgm.volume = 0.6;
   bgm.play().then(() => updateMusicButtonState()).catch(() => updateMusicButtonState());
   setTimeout(() => tip.classList.remove('hidden'), 3200);
@@ -1084,4 +1085,243 @@ window.addEventListener('resize', () => {
   renderer.setSize(sizes.w, sizes.h);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
-//hyK//
+//hy//
+
+/* -------------------------------------------------------------------
+   RECUERDO DE CUATRO MESES
+------------------------------------------------------------------- */
+const FOUR_MONTHS_REQUIRED_CLICKS = 3;
+const FOUR_MONTHS_PASSWORD = 'kevin';
+const FOUR_MONTHS_PHOTOS = [
+  { src: 'img/13.jpeg', alt: 'Un recuerdo nuestro', caption: 'Nuestro momento' },
+  { src: 'img/14.jpeg', alt: 'La sonrisa de Leidy', caption: 'Tu sonrisa' },
+  { src: 'img/15.jpeg', alt: 'Un momento juntos', caption: 'Juntos' },
+  { src: 'img/16.jpeg', alt: 'Nuestro amor', caption: 'Para siempre' },
+];
+
+const fourMonthsScreen = document.getElementById('fourMonthsScreen');
+const fourMonthsGalaxyBtnWrap = document.getElementById('fourMonthsGalaxyBtnWrap');
+const fourMonthsGalaxyBtn = document.getElementById('fourMonthsGalaxyBtn');
+const fourMonthsCloseBtn = document.getElementById('closeFourMonthsBtn');
+const fourMonthsHeartBtn = document.getElementById('clickHeartBtn');
+const fourMonthsClickCounter = document.getElementById('clickCounter');
+const fourMonthsClicksLeft = document.getElementById('clicksLeft');
+const fourMonthsSteps = [
+  document.getElementById('fourMonthsStep1'),
+  document.getElementById('fourMonthsStep2'),
+  document.getElementById('fourMonthsStep3'),
+  document.getElementById('fourMonthsStep4'),
+];
+const fourMonthsCarousel = document.getElementById('carouselTrack');
+const fourMonthsPrevBtn = document.getElementById('carouselPrev');
+const fourMonthsNextBtn = document.getElementById('carouselNext');
+const fourMonthsContinueBtn = document.getElementById('continueToVideoBtn');
+const fourMonthsPasswordForm = document.getElementById('passwordForm');
+const fourMonthsPasswordInput = document.getElementById('passwordInput');
+const fourMonthsPasswordError = document.getElementById('passwordError');
+const fourMonthsVideo = document.getElementById('fourMonthsVideoPlayer');
+const fourMonthsVideoError = document.getElementById('fourMonthsVideoError');
+let fourMonthsClickCount = 0;
+let fourMonthsCurrentSlide = 0;
+let fourMonthsMusicWasPlaying = false;
+let fourMonthsCarouselFrame = 0;
+
+function initFourMonths() {
+  if (!fourMonthsScreen || !fourMonthsGalaxyBtn || !fourMonthsCarousel) return;
+
+  buildFourMonthsCarousel();
+  fourMonthsGalaxyBtn.addEventListener('click', openFourMonthsScreen);
+  fourMonthsCloseBtn.addEventListener('click', closeFourMonthsScreen);
+  fourMonthsHeartBtn.addEventListener('click', handleFourMonthsHeartClick);
+  fourMonthsPrevBtn.addEventListener('click', () => navigateFourMonthsCarousel(-1));
+  fourMonthsNextBtn.addEventListener('click', () => navigateFourMonthsCarousel(1));
+  fourMonthsContinueBtn.addEventListener('click', showFourMonthsPasswordStep);
+  fourMonthsPasswordForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    checkFourMonthsPassword();
+  });
+  fourMonthsScreen.addEventListener('click', (event) => {
+    if (event.target === fourMonthsScreen) closeFourMonthsScreen();
+  });
+  fourMonthsCarousel.addEventListener('scroll', updateFourMonthsCarouselButtons, { passive: true });
+  document.addEventListener('keydown', handleFourMonthsEscape);
+  fourMonthsVideo.addEventListener('error', () => {
+    fourMonthsVideo.classList.add('hidden');
+    fourMonthsVideoError.classList.remove('hidden');
+    fourMonthsVideoError.textContent = 'No se pudo cargar el video. Revisa que exista vid/2.mp4.';
+  });
+  fourMonthsVideo.addEventListener('loadedmetadata', () => {
+    fourMonthsVideoError.classList.add('hidden');
+    fourMonthsVideo.classList.remove('hidden');
+    fourMonthsVideo.muted = false;
+    fourMonthsVideo.volume = 1;
+  });
+  fourMonthsVideo.src = 'vid/2.mp4';
+  fourMonthsVideo.load();
+}
+
+function buildFourMonthsCarousel() {
+  fourMonthsCarousel.replaceChildren();
+  FOUR_MONTHS_PHOTOS.forEach((photo) => {
+    const slide = document.createElement('article');
+    slide.className = 'carousel-slide';
+
+    const image = document.createElement('img');
+    image.src = fotoSrc(photo.src);
+    image.alt = photo.alt;
+    image.loading = 'lazy';
+    image.onerror = () => {
+      image.remove();
+      const fallback = document.createElement('p');
+      fallback.className = 'carousel-image-error';
+      fallback.textContent = 'No se pudo cargar esta foto.';
+      slide.insertBefore(fallback, caption);
+    };
+
+    const caption = document.createElement('p');
+    caption.textContent = photo.caption;
+    slide.append(image, caption);
+    fourMonthsCarousel.appendChild(slide);
+  });
+  updateFourMonthsCarouselButtons();
+}
+
+function navigateFourMonthsCarousel(direction) {
+  fourMonthsCurrentSlide = Math.max(
+    0,
+    Math.min(FOUR_MONTHS_PHOTOS.length - 1, fourMonthsCurrentSlide + direction),
+  );
+  const slide = fourMonthsCarousel.children[fourMonthsCurrentSlide];
+  if (slide) slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  updateFourMonthsCarouselButtons();
+}
+
+function updateFourMonthsCarouselButtons() {
+  if (!fourMonthsCarousel || !fourMonthsPrevBtn || !fourMonthsNextBtn) return;
+  if (fourMonthsCarouselFrame) cancelAnimationFrame(fourMonthsCarouselFrame);
+  fourMonthsCarouselFrame = requestAnimationFrame(() => {
+    const slides = Array.from(fourMonthsCarousel.children);
+    if (slides.length) {
+      const trackCenter = fourMonthsCarousel.getBoundingClientRect().left + fourMonthsCarousel.clientWidth / 2;
+      fourMonthsCurrentSlide = slides.reduce((closestIndex, slide, index) => {
+        const center = slide.getBoundingClientRect().left + slide.clientWidth / 2;
+        const closestCenter = slides[closestIndex].getBoundingClientRect().left + slides[closestIndex].clientWidth / 2;
+        return Math.abs(center - trackCenter) < Math.abs(closestCenter - trackCenter) ? index : closestIndex;
+      }, 0);
+    }
+    fourMonthsPrevBtn.classList.toggle('hidden', fourMonthsCurrentSlide === 0);
+    fourMonthsNextBtn.classList.toggle(
+      'hidden',
+      fourMonthsCurrentSlide >= FOUR_MONTHS_PHOTOS.length - 1,
+    );
+  });
+}
+
+function handleFourMonthsHeartClick() {
+  if (fourMonthsClickCount >= FOUR_MONTHS_REQUIRED_CLICKS) return;
+
+  fourMonthsClickCount += 1;
+  fourMonthsHeartBtn.classList.remove('clicked');
+  void fourMonthsHeartBtn.offsetWidth;
+  fourMonthsHeartBtn.classList.add('clicked');
+  fourMonthsClickCounter.textContent = `${fourMonthsClickCount}/${FOUR_MONTHS_REQUIRED_CLICKS}`;
+  fourMonthsHeartBtn.setAttribute(
+    'aria-label',
+    `Corazón: ${fourMonthsClickCount} de ${FOUR_MONTHS_REQUIRED_CLICKS} clicks`,
+  );
+  fourMonthsClicksLeft.textContent = String(FOUR_MONTHS_REQUIRED_CLICKS - fourMonthsClickCount);
+
+  if (fourMonthsClickCount === FOUR_MONTHS_REQUIRED_CLICKS) {
+    fourMonthsHeartBtn.disabled = true;
+    window.setTimeout(() => showFourMonthsStep(1), 400);
+  }
+}
+
+function showFourMonthsStep(stepIndex) {
+  fourMonthsSteps.forEach((step, index) => {
+    step.classList.toggle('active', index === stepIndex);
+  });
+  fourMonthsScreen.querySelector('.four-months-card').classList.toggle('is-video-step', stepIndex === 3);
+}
+
+function showFourMonthsPasswordStep() {
+  fourMonthsPasswordInput.value = '';
+  fourMonthsPasswordInput.classList.remove('error');
+  fourMonthsPasswordError.classList.add('hidden');
+  showFourMonthsStep(2);
+  window.setTimeout(() => fourMonthsPasswordInput.focus(), 100);
+}
+
+function checkFourMonthsPassword() {
+  if (fourMonthsPasswordInput.value.trim().toLocaleLowerCase() !== FOUR_MONTHS_PASSWORD) {
+    fourMonthsPasswordError.classList.remove('hidden');
+    fourMonthsPasswordInput.classList.add('error');
+    fourMonthsPasswordInput.value = '';
+    fourMonthsPasswordInput.focus();
+    return;
+  }
+
+  fourMonthsPasswordError.classList.add('hidden');
+  fourMonthsPasswordInput.classList.remove('error');
+  showFourMonthsStep(3);
+  fourMonthsVideo.currentTime = 0;
+  fourMonthsVideo.muted = false;
+  fourMonthsVideo.volume = 1;
+  fourMonthsVideoError.classList.add('hidden');
+  fourMonthsVideo.play().catch(() => {
+    if (!fourMonthsVideo.error) {
+      fourMonthsVideo.classList.remove('hidden');
+      fourMonthsVideoError.classList.remove('hidden');
+      fourMonthsVideoError.textContent = 'Pulsa reproducir para ver el video 💖';
+    }
+  });
+}
+
+function openFourMonthsScreen() {
+  fourMonthsClickCount = 0;
+  fourMonthsClickCounter.textContent = `0/${FOUR_MONTHS_REQUIRED_CLICKS}`;
+  fourMonthsClicksLeft.textContent = String(FOUR_MONTHS_REQUIRED_CLICKS);
+  fourMonthsHeartBtn.disabled = false;
+  fourMonthsHeartBtn.setAttribute(
+    'aria-label',
+    `Corazón: 0 de ${FOUR_MONTHS_REQUIRED_CLICKS} clicks`,
+  );
+  showFourMonthsStep(0);
+
+  fourMonthsMusicWasPlaying = !bgm.paused && !bgm.muted;
+  if (fourMonthsMusicWasPlaying) {
+    bgm.pause();
+    updateMusicButtonState();
+  }
+  setScenePaused(true);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  fourMonthsScreen.classList.remove('hidden');
+  fourMonthsHeartBtn.focus();
+}
+
+function closeFourMonthsScreen() {
+  fourMonthsScreen.classList.add('hidden');
+  fourMonthsVideo.pause();
+  fourMonthsVideo.currentTime = 0;
+  setScenePaused(false);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  if (fourMonthsMusicWasPlaying) {
+    bgm.play().then(updateMusicButtonState).catch(updateMusicButtonState);
+  }
+  fourMonthsMusicWasPlaying = false;
+  fourMonthsGalaxyBtn.focus();
+}
+
+function handleFourMonthsEscape(event) {
+  if (event.key === 'Escape' && !fourMonthsScreen.classList.contains('hidden')) {
+    closeFourMonthsScreen();
+  }
+}
+
+function showFourMonthsGalaxyButton() {
+  fourMonthsGalaxyBtnWrap.classList.remove('hidden');
+  fourMonthsGalaxyBtnWrap.setAttribute('aria-hidden', 'false');
+}
+
+initFourMonths();
