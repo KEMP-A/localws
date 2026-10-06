@@ -984,6 +984,14 @@ const tip = document.getElementById('tip');
 const bgm = document.getElementById('bgm');
 let intro = false, introT = 0;
 
+const welcomeScreen = document.getElementById('welcomeScreen');
+window.setTimeout(() => {
+  welcomeScreen.classList.add('welcome-screen-leaving');
+  welcomeScreen.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('welcome-active');
+  window.setTimeout(() => welcomeScreen.classList.add('hidden'), 900);
+}, 10000);
+
 document.getElementById('startBtn').addEventListener('click', () => {
   landing.classList.add('hide');
   intro = true;

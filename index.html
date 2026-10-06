@@ -12,7 +12,32 @@
 
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="welcome-active">
+
+  <!-- ===== Bienvenida especial ===== -->
+  <section id="welcomeScreen" class="welcome-screen" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="welcome-stars" aria-hidden="true">
+      <span>✦</span>
+      <span>♡</span>
+      <span>✧</span>
+      <span>♡</span>
+      <span>✦</span>
+      <span>✧</span>
+    </div>
+    <div class="welcome-content">
+      <span class="welcome-heart" aria-hidden="true">💖</span>
+      <p class="welcome-eyebrow">Para mi persona favorita</p>
+      <h1 id="welcomeTitle" class="welcome-title">
+        Hoy es un día muy especial
+        <span>para nosotros dos</span>
+      </h1>
+      <p class="welcome-caption">Un momento, un amor y una historia que sigue creciendo ✨</p>
+      <div class="welcome-progress" role="presentation">
+        <span class="welcome-progress-fill"></span>
+      </div>
+      <p class="welcome-loading">Preparando una sorpresa para ti...</p>
+    </div>
+  </section>
 
   <!-- ===== Canvas de la galaxia ===== -->
   <canvas id="webgl"></canvas>

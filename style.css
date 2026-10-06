@@ -21,6 +21,141 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ===== Bienvenida especial ===== */
+body.welcome-active #landing {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 28px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(104, 39, 139, .72), transparent 48%),
+    radial-gradient(ellipse at 16% 84%, rgba(255, 79, 163, .19), transparent 42%),
+    linear-gradient(145deg, #12051f 0%, #080211 56%, #03010a 100%);
+  transition: opacity .9s ease, transform .9s ease, visibility .9s ease;
+}
+.welcome-screen-leaving {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+.welcome-content {
+  position: relative;
+  z-index: 1;
+  width: min(740px, 100%);
+  animation: welcomeContentIn 1.1s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes welcomeContentIn {
+  from { opacity: 0; transform: translateY(18px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.welcome-heart {
+  display: inline-block;
+  margin-bottom: 24px;
+  font-size: clamp(3.2rem, 10vw, 5.4rem);
+  filter: drop-shadow(0 0 24px rgba(255, 79, 163, .8));
+  animation: welcomeHeartbeat 1.7s ease-in-out infinite;
+}
+@keyframes welcomeHeartbeat {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(1.12); }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.08); }
+}
+.welcome-eyebrow {
+  margin-bottom: 18px;
+  color: #ffc5e5;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+}
+.welcome-title {
+  color: #fff5fc;
+  font: 600 clamp(2.25rem, 7.5vw, 5.1rem)/1.12 'Playfair Display', serif;
+  text-shadow: 0 0 34px rgba(255, 105, 190, .32);
+}
+.welcome-title span {
+  display: block;
+  margin-top: 8px;
+  color: #ff9bd0;
+  font-style: italic;
+}
+.welcome-caption {
+  margin: 24px 0 32px;
+  color: rgba(255, 237, 249, .82);
+  font-size: clamp(.9rem, 2.2vw, 1.08rem);
+  font-weight: 300;
+  letter-spacing: .04em;
+}
+.welcome-progress {
+  width: min(240px, 68vw);
+  height: 3px;
+  margin: 0 auto 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.15);
+}
+.welcome-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff4fa3, #ffd0ea);
+  box-shadow: 0 0 14px rgba(255, 79, 163, .8);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: welcomeProgress 10s linear both;
+}
+@keyframes welcomeProgress {
+  to { transform: scaleX(1); }
+}
+.welcome-loading {
+  color: rgba(255, 221, 243, .68);
+  font-size: .76rem;
+  letter-spacing: .08em;
+}
+.welcome-stars span {
+  position: absolute;
+  color: #ffd0ea;
+  text-shadow: 0 0 16px rgba(255, 79, 163, .85);
+  animation: welcomeTwinkle 3s ease-in-out infinite;
+}
+.welcome-stars span:nth-child(1) { top: 18%; left: 17%; font-size: 1.3rem; }
+.welcome-stars span:nth-child(2) { top: 25%; right: 19%; font-size: 1.8rem; animation-delay: .7s; }
+.welcome-stars span:nth-child(3) { right: 12%; bottom: 23%; font-size: 1.2rem; animation-delay: 1.4s; }
+.welcome-stars span:nth-child(4) { bottom: 18%; left: 22%; font-size: 1.6rem; animation-delay: 2s; }
+.welcome-stars span:nth-child(5) { top: 13%; right: 39%; font-size: .9rem; animation-delay: .4s; }
+.welcome-stars span:nth-child(6) { bottom: 30%; left: 10%; font-size: 1rem; animation-delay: 1.8s; }
+@keyframes welcomeTwinkle {
+  0%, 100% { opacity: .3; transform: scale(.8) rotate(0); }
+  50% { opacity: 1; transform: scale(1.15) rotate(18deg); }
+}
+@media (max-width: 640px) {
+  .welcome-screen { padding: 24px; }
+  .welcome-eyebrow { font-size: .67rem; letter-spacing: .2em; }
+  .welcome-caption { max-width: 320px; margin: 20px auto 28px; line-height: 1.6; }
+  .welcome-stars span:nth-child(1) { left: 8%; }
+  .welcome-stars span:nth-child(2) { right: 8%; }
+  .welcome-stars span:nth-child(3) { right: 7%; bottom: 16%; }
+  .welcome-stars span:nth-child(4) { left: 9%; bottom: 14%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-content,
+  .welcome-heart,
+  .welcome-stars span { animation: none; }
+  .welcome-screen { transition: none; }
+  .welcome-progress-fill { animation-duration: 10s; }
+}
+
 /* ===== Canvas ===== */
 #webgl {
   position: fixed;
